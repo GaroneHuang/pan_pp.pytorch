@@ -1,5 +1,7 @@
 import os
 import os.path as osp
+import numpy as np
+import json
 import zipfile
 
 
@@ -26,6 +28,28 @@ class ResultFormat(object):
             self._write_result_ctw(img_name, outputs)
         elif 'MSRA' in self.data_type:
             self._write_result_msra(img_name, outputs)
+        elif 'BENCHMARK' in self.data_type:
+            self._write_result_benchmark(img_name, outputs)
+
+    def _write_result_benchmark(self, image_name, outputs):
+        bboxes = outputs['bboxes']
+        words = outputs['words']
+
+        results = []
+        for i, bbox in enumerate(bboxes):
+            if words[i] is not None:
+                values = [round(v) for v in bbox]
+                poly = np.array(values, dtype=np.float32).reshape(-1, 2).tolist()
+                transcript = words[i]
+                score = 1
+                result = {'poly': poly, 'transcript': transcript, 'score': score}
+                results.append(result)
+
+        file_name = '%s.json' % image_name
+        file_path = osp.join(self.result_path, file_name)
+        f = open(file_path, "w", encoding="utf-8")
+        json.dump({'image_name': image_name, 'preds': results}, f)
+        f.close()
 
     def _write_result_ic15(self, img_name, outputs):
         assert self.result_path.endswith(

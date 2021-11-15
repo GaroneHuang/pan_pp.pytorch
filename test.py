@@ -91,7 +91,7 @@ def test(test_loader, model, cfg):
 
         # save result
         image_name, _ = osp.splitext(
-            osp.basename(test_loader.dataset.img_paths[idx]))
+            osp.basename(test_loader.dataset.gt_paths[idx]).rstrip(".json")+".jpg")
         rf.write_result(image_name, outputs)
 
 
@@ -108,7 +108,7 @@ def main(args):
         data_loader,
         batch_size=1,
         shuffle=False,
-        num_workers=2,
+        num_workers=32,
     )
     # model
     if hasattr(cfg.model, 'recognition_head'):
